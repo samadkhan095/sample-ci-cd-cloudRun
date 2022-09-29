@@ -20,3 +20,9 @@ steps:
     - '--allow-unauthenticated'
     - '--service-account=${_SERVICE_ACCOUNT_EMAIL}'
     - '--image=gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA'
+    - '--project=${_PROJECT_ID}'
+
+timeout: 3600s 
+options:
+  logging: GCS_ONLY
+logsBucket: gs://aims_cloud_build_logs
