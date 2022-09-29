@@ -1,14 +1,14 @@
 steps:
-- id: Generate the JAR file
-  name: maven:3.6.0-jdk-11
-  entrypoint: mvn
-  args: ["package", "-Dmaven.test.skip=true"]
+# - id: Generate the JAR file
+#   name: maven:3.6.0-jdk-11
+#   entrypoint: mvn
+#   args: ["package", "-Dmaven.test.skip=true"]
 
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA', '.' ]
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [ 'build', '-t', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA', '.' ]
 
-- name: 'gcr.io/cloud-builders/docker'
-  args: [ 'push', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA']
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: [ 'push', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA']
 
 - name: 'gcr.io/cloud-builders/gcloud'
   args:
@@ -19,7 +19,7 @@ steps:
     - '--platform=managed'
     - '--allow-unauthenticated'
     - '--service-account=${_SERVICE_ACCOUNT_EMAIL}'
-    - '--image=gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA'
+    - '--image=gcr.io/${_PROJECT_ID}/test-app:6d6bc4094630e5adab43392451dbd04132c75aab'
     - '--project=${_PROJECT_ID}'
 
 timeout: 3600s 
