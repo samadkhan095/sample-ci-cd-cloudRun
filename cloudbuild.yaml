@@ -1,0 +1,22 @@
+steps:
+- id: Generate the JAR file
+  name: maven:3.6.0-jdk-11
+  entrypoint: mvn
+  args: ["package", "-Dmaven.test.skip=true"]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA', '.' ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - 'test-app'
+    - '--region=${_REGION}'
+    - '--platform=managed'
+    - '--allow-unauthenticated'
+    - '--service-account=${_SERVICE_ACCOUNT_EMAIL}'
+    - '--image=gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA'
