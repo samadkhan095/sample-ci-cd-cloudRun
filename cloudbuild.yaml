@@ -1,27 +1,44 @@
 steps:
-# - id: Generate the JAR file
-#   name: maven:3.6.0-jdk-11
-#   entrypoint: mvn
-#   args: ["package", "-Dmaven.test.skip=true"]
+- id: Generate the JAR file
+  name: maven:3.6.0-jdk-11
+  entrypoint: mvn
+  args: ["package", "-Dmaven.test.skip=true"]
 
-# - name: 'gcr.io/cloud-builders/docker'
-#   args: [ 'build', '-t', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA', '.' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/${_PROJECT_ID}/docker-registry-aims-dev/test-app:$COMMIT_SHA', '-t', 'us-central1-docker.pkg.dev/${_PROJECT_ID}/docker-registry-aims-dev/test-app:latest', '.' ]
 
-# - name: 'gcr.io/cloud-builders/docker'
-#   args: [ 'push', 'gcr.io/${_PROJECT_ID}/test-app:$COMMIT_SHA']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', '--all-tags', 'us-central1-docker.pkg.dev/${_PROJECT_ID}/docker-registry-aims-dev/test-app']
 
-- name: 'gcr.io/cloud-builders/gcloud'
+# - id: Add the cloud run service configuration.
+#   name: bash
+#   # secretEnv: []
+#   entrypoint: bash
+#   args:
+#   - -c
+#   - |
+#     cat << EOF > run-dev.yaml
+
+#     EOF
+
+- id: Deploy to gke cluster 
+  name: 'google/cloud-sdk:latest'
+  entrypoint: 'sh'
   args:
-    - 'run'
-    - 'deploy'
-    - 'test-app'
-    - '--region=${_REGION}'
-    - '--platform=managed'
-    - '--allow-unauthenticated'
-    - '--image=gcr.io/${_PROJECT_ID}/test-app:6d6bc4094630e5adab43392451dbd04132c75aab'
-    - '--project=${_PROJECT_ID}'
+  - -xe
+  - -c
+  - |
+    gcloud config set deploy/region ${_REGION}
+    gcloud beta deploy apply --file deploy/dev.yaml
+    gcloud beta deploy apply --file deploy/prod.yaml
+    gcloud beta deploy apply --file deploy/pipeline.yaml
+    gcloud beta deploy releases create test-release-${SHORT_SHA} \
+                        --delivery-pipeline my-run-demo-app-1 \
+                        --description "$(git log -1  --pretty='%s')" \
+                        --images=my-app-image=us-central1-docker.pkg.dev/project-aims-dev/docker-registry-aims-dev/test-app
+
 
 timeout: 3600s 
-# options:
-#   logging: GCS_ONLY
-# logsBucket: gs://aims_cloud_build_logs
+options:
+  logging: GCS_ONLY
+logsBucket: gs://aims_cloud_build_logs
