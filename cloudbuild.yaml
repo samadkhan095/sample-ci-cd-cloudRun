@@ -21,7 +21,7 @@ steps:
 
 #     EOF
 
-- id: Deploy to gke cluster 
+- id: Deploy the docker images to cloud run 
   name: 'google/cloud-sdk:latest'
   entrypoint: 'sh'
   args:
